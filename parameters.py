@@ -1,0 +1,14 @@
+
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+
+W, H = 700, 700
+dt = 2
+N_PARTICULES = 50
+SIZE = 10
+MAX_SPEED = 5
+
+DAMP = 0.999
+
+G = 0.01
+EPS = 0.5
