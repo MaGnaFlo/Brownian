@@ -13,6 +13,7 @@ if __name__ == "__main__":
 	pygame.init()
 	screen = pygame.display.set_mode([W, H])
 	particules, p_map = generate_particules(N_PARTICULES, size=SIZE)
+	print("Generated {} particules.".format(len(particules)))
 	running = True
 
 	while running:
@@ -31,14 +32,6 @@ if __name__ == "__main__":
 		for part in particules:
 			check_collisions(part, particules, p_map)
 			part.update(screen)
-		
-
-		# # check boundaries
-		# index = 0
-		# while index < len(particules):
-		# 	part = particules[index]
-		# 	part.update_bounds()
-		# 	index += 1
 		
 		# update
 		pygame.display.flip()
