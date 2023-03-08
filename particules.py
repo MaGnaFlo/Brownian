@@ -59,16 +59,16 @@ def generate_particules(n, size=5):
 		it = 0
 		found = True
 
-		x = np.random.randint(s+1, W-s-1)
-		y = np.random.randint(s+1, H-s-1)
+		x = np.random.randint(s+1, W-2*s-1)
+		y = np.random.randint(s+1, H-2*s-1)
 		while it < max_iter and not found:
 			# loop over the particule (will assume square)
 			for x_ in range(x, x+s):
 				for y_ in range(y, y+s):
 					if p_map[x_,y_] == 0:
 						found = False
-			x = np.random.randint(s+1, W-s-1)
-			y = np.random.randint(s+1, H-s-1)
+			x = np.random.randint(s+1, W-2*s-1)
+			y = np.random.randint(s+1, H-2*s-1)
 			it += 1
 
 		# if we found a point, randomize it and add it to the set/map.
