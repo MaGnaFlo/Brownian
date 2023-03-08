@@ -26,18 +26,19 @@ if __name__ == "__main__":
 				if event.key == pygame.K_q:
 					running = False
 
+		# particules update
+		p_map = set_map_all(p_map, particules)
+		for part in particules:
+			check_collisions(part, particules, p_map)
+			part.update(screen)
+		
+
 		# check boundaries
 		index = 0
 		while index < len(particules):
 			part = particules[index]
 			part.update_bounds()
 			index += 1
-
-		# particules update
-		for part in particules:
-			check_collisions(part, particules, p_map)
-			part.update(screen)
-		p_map = set_map_all(p_map, particules)
 		
 		# update
 		pygame.display.flip()
