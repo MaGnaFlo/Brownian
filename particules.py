@@ -5,7 +5,7 @@ from parameters import *
 
 
 class Particule(pygame.sprite.Sprite):
-	def __init__(self, shape="disk", index=0, pos=(W/2, H/2), speed=(0,0), size=5, color=WHITE):
+	def __init__(self, shape="square", index=0, pos=(W/2, H/2), speed=(0,0), size=5, color=WHITE):
 		super().__init__()
 		self.shape = shape
 		self.size = size
@@ -21,7 +21,7 @@ class Particule(pygame.sprite.Sprite):
 
 	def __repr__(self):
 		return "Particule {} :\n\tPosition: {}\n\tSpeed: {}\n\tSize: {}".format(
-					self.index, self.pos, self.speed, self.size)
+				self.index, self.pos, self.speed, self.size)
 
 	def update_bounds(self):
 		vx, vy = self.speed
@@ -43,47 +43,41 @@ class Particule(pygame.sprite.Sprite):
 
 def generate_particules(n, size=5):
 	''' Particule generation. Makes sure particules are not superimposed.'''
+	p_map = defaultdict(int)
 	particules = []
 	s = SIZE
 
-	x_rand = np.random.permutation(W)
-	y_rand = np.random.permutation(H)
-	p_map = defaultdict(int)
-	
-	for i in range(1, n+1):
-		pos = (x_rand[i], y_rand[i])
-		
-		# this is the large particule
-		if i == n:
-			s = 50
-			speed = (0.1,0)
-			pos = (W/2+s/2, H/2+s/2)
+	# first create the large central particule.
+	color = np.random.randint(50, 256, 3)
+	particule = Particule(index=1, shape="disk", pos=np.array([W/2, H/2]), speed=(0.1,0), size=50, color=color)
+	particules.append(particule)
+	p_map = set_map(p_map, particule)
 
-		# fixed loop to avoid superposition. If we reach max_iter, the particule i is not created.
+	# loop over the number of desired additional particules
+	for i in range(2, n+1):
 		max_iter = 100
 		it = 0
-		ok = False
-		while it < max_iter and not ok:
+		found = True
+
+		x = np.random.randint(s+1, W-s-1)
+		y = np.random.randint(s+1, H-s-1)
+		while it < max_iter and not found:
+			# loop over the particule (will assume square)
+			for x_ in range(x, x+s):
+				for y_ in range(y, y+s):
+					if p_map[x_,y_] == 0:
+						found = False
+			x = np.random.randint(s+1, W-s-1)
+			y = np.random.randint(s+1, H-s-1)
 			it += 1
-			break_loop = False
-			x, y = pos
 
-			for x_ in range(int(x), int(x+s)):
-				if break_loop:
-					break
-				for y_ in range(int(y-s), int(y+s)):
-					if p_map[(int(x_),int(y_))] == 0:
-						ok = True
-						break_loop = True
-						break
-
-		# no superposition, we can add the particule
-		if it < max_iter:
-			pos = np.array([x,y])
+		# if we found a point, randomize it and add it to the set/map.
+		if found:
+			pos = np.array([x, y])
 			speed = MAX_SPEED*np.random.rand(2) + 0.05
 			speed = (-1)**np.random.randint(2)*speed 
 			color = np.random.randint(50, 256, 3)
-			particule = Particule(index=i, pos=pos, speed=speed, size=s, color=color)
+			particule = Particule(index=i, shape="disk", pos=pos, speed=speed, size=s, color=color)
 			particules.append(particule)
 			p_map = set_map(p_map, particule)
 
@@ -97,7 +91,7 @@ def set_map(p_map, part):
 			if part.shape == "square":
 				p_map[(int(x_), int(y_))] = part.index
 			elif part.shape == "disk":
-				if (x_-x)**2 + (y_-y)**2 < s**2/4:
+				if (x_-x)**2 + (y_-y)**2 <= s**2/4:
 					p_map[(int(x_),int(y_))] = part.index
 			else:
 				print("Unknown shape argument.")
@@ -167,32 +161,33 @@ def check_collisions(part, particules, p_map):
 
 			# then check if we collide with another particule.
 			elif k_ != 0 and k_ != k and k != -1:
-				 part_ = particules[k_-1]
+				part_ = particules[k_-1]
 
-				 # delta position to change the direction
-				 # in the future, we need to create a reflected direction.
-				 dpos = np.array(part.pos) - np.array(part_.pos)
+				# delta position to change the direction
+				# in the future, we need to create a reflected direction.
+				normal = np.array(part.pos) - np.array(part_.pos)
+				normal = normal / np.linalg.norm(normal)
 
-				 # the speed is updated accordingly
-				 part.speed = dpos / np.linalg.norm(dpos) * np.linalg.norm(part.speed)
-				 part_.speed = -dpos / np.linalg.norm(dpos) * np.linalg.norm(part_.speed)
+				# the speed is updated accordingly.
+				part.speed = part.speed - 2*part.speed.dot(normal)*normal
+				part_.speed = part_.speed - 2*part_.speed.dot(normal)*normal
 
-				 # wipe the current index in the map
-				 p_map[tuple(part.pos)] = 0
-				 p_map[tuple(part_.pos)] = 0
+				# wipe the current index in the map
+				p_map[tuple(part.pos)] = 0
+				p_map[tuple(part_.pos)] = 0
 
-				 # update positions
-				 part.pos += dt*part.speed*(1+EPS)
-				 part_.pos += dt*part_.speed*(1+EPS)
+				# update positions
+				part.pos += dt*part.speed*(1+EPS)
+				part_.pos += dt*part_.speed*(1+EPS)
 
-				 # add indices to map at new position.
-				 x, y = part.pos 
-				 x_, y_ = part_.pos
-				 p_map[(int(x),int(y))] = part.index
-				 p_map[(int(x_),int(y_))] = part_.index
+				# add indices to map at new position.
+				x, y = part.pos 
+				x_, y_ = part_.pos
+				p_map[(int(x),int(y))] = part.index
+				p_map[(int(x_),int(y_))] = part_.index
 
-				 # we found a correct place to set the particule. Stop the loop.
-				 stop_loop_x = True
-				 break
+				# we found a correct place to set the particule. Stop the loop.
+				stop_loop_x = True
+				break
 
 
