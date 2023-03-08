@@ -33,12 +33,12 @@ if __name__ == "__main__":
 			part.update(screen)
 		
 
-		# check boundaries
-		index = 0
-		while index < len(particules):
-			part = particules[index]
-			part.update_bounds()
-			index += 1
+		# # check boundaries
+		# index = 0
+		# while index < len(particules):
+		# 	part = particules[index]
+		# 	part.update_bounds()
+		# 	index += 1
 		
 		# update
 		pygame.display.flip()

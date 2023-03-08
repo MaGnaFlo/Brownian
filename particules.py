@@ -37,14 +37,15 @@ class Particule(pygame.sprite.Sprite):
 		else:
 			screen.blit(self.surf, self.pos.astype(int))
 
-
 def generate_particules(n, size=5):
 	''' Particule generation. Makes sure particules are not superimposed.'''
 	particules = []
+	s = SIZE
+
 	x_rand = np.random.permutation(W)
 	y_rand = np.random.permutation(H)
 	p_map = defaultdict(int)
-	s = SIZE
+	
 	for i in range(1, n+1):
 		pos = (x_rand[i], y_rand[i])
 		
@@ -58,21 +59,23 @@ def generate_particules(n, size=5):
 		max_iter = 100
 		it = 0
 		ok = False
-		while it < max_iter and ok:
+		while it < max_iter and not ok:
 			it += 1
 			break_loop = False
 			x, y = pos
-	
+
 			for x_ in range(int(x), int(x+s)):
 				if break_loop:
 					break
-				for y_ in range(int(y), int(y+s)):
-					if p_map[(int(x_),int(y_))] != 0:
+				for y_ in range(int(y-s), int(y+s)):
+					if p_map[(int(x_),int(y_))] == 0:
 						ok = True
+						break_loop = True
 						break
 
 		# no superposition, we can add the particule
 		if it < max_iter:
+			pos = np.array([x,y])
 			speed = MAX_SPEED*np.random.rand(2) + 0.05
 			speed = (-1)**np.random.randint(2)*speed 
 			color = np.random.randint(50, 256, 3)
@@ -88,7 +91,7 @@ def set_map(p_map, part):
 	for x_ in range(int(x), int(x)+s):
 		for y_ in range(int(y), int(y+s)):
 			if part.shape == "square":
-				p_map[(int(x_),int(y_))] = part.index
+				p_map[(int(x_), int(y_))] = part.index
 			elif part.shape == "disk":
 				if (x_-x)**2 + (y_-y)**2 < s**2/4:
 					p_map[(int(x_),int(y_))] = part.index
@@ -101,6 +104,13 @@ def set_map_all(p_map, particules):
 	p_map = defaultdict(int)
 	for part in particules:
 		p_map = set_map(p_map, part)
+
+	for x in range(-1, W):
+		p_map[(x,0)] = -11
+		p_map[(x,H-1)] = -12
+	for y in range(-1, H):
+		p_map[(0,y)] = -21
+		p_map[(W-1,y)] = -22
 	return p_map
 
 def check_collisions(part, particules, p_map):
@@ -112,18 +122,47 @@ def check_collisions(part, particules, p_map):
 	k = part.index
 
 	stop_loop_x = False
-	# iterate over the particule area
+	# iterate over the particule area.
 	for x_ in range(int(x), int(x+s)):
 
 		if stop_loop_x:
 			stop_loop_x = False
 			break
 
+		# first, find out if we hit a boundary.
 		for y_ in range(int(y), int(y+s)):
 			k_ = p_map[(int(x_),int(y_))]
+			if k_ in [-11,-12,-21,-22]:
 
-			# case where it collides with another particule.
-			if k_ != 0 and k_ != k:
+				if k_ == -11:
+					norm = np.array([0,1])
+				if k_ == -12:
+					norm = np.array([0,-1])
+				if k_ == -21:
+					norm = np.array([1,0])
+				if k_ == -22:
+					norm = np.array([-1,0])
+
+				# the speed is updated accordingly.
+				part.speed = part.speed - 2*part.speed.dot(norm)*norm
+
+				# wipe the current index in the map.
+				p_map[tuple(part.pos)] = 0
+
+				# update positions
+				part.pos += dt*part.speed*(1+EPS)
+
+				# add indices to map at new position.
+				x, y = part.pos 
+
+				p_map[(int(x),int(y))] = part.index
+
+				# we found a correct place to set the particule. Stop the loop.
+				stop_loop_x = True
+				break
+
+			# then check if we collide with another particule.
+			elif k_ != 0 and k_ != k and k != -1:
 				 part_ = particules[k_-1]
 
 				 # delta position to change the direction
@@ -151,4 +190,5 @@ def check_collisions(part, particules, p_map):
 				 # we found a correct place to set the particule. Stop the loop.
 				 stop_loop_x = True
 				 break
+
 
