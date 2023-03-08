@@ -19,6 +19,10 @@ class Particule(pygame.sprite.Sprite):
 		self.index = index
 		self.color = color
 
+	def __repr__(self):
+		return "Particule {} :\n\tPosition: {}\n\tSpeed: {}\n\tSize: {}".format(
+					self.index, self.pos, self.speed, self.size)
+
 	def update_bounds(self):
 		vx, vy = self.speed
 		if self.pos[0] <= 0 or self.pos[0]+self.size >= W-1:
