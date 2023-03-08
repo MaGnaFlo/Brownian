@@ -6,11 +6,11 @@ from parameters import *
 
 class Particule(pygame.sprite.Sprite):
 	def __init__(self, shape="square", index=0, pos=(W/2, H/2), speed=(0,0), 
-					mass=0.1, size=5):
+					mass=1, color=(255,255,255)):
 		super().__init__()
 		self.shape = shape
 		self.mass = mass
-		self.size = size
+		self.size = mass
 		
 		self.pos = np.array(pos, dtype=float)
 		if self.shape == "disk":
@@ -18,8 +18,8 @@ class Particule(pygame.sprite.Sprite):
 		self.speed = np.array(speed, dtype=float)
 		self.index = index
 
-		self.color = (70, 70, 255*mass)
-		self.surf = pygame.Surface((size, size))
+		self.color = color
+		self.surf = pygame.Surface((self.size, self.size))
 		self.surf.fill(self.color)
 		self.rect = self.surf.get_rect()
 
@@ -30,7 +30,7 @@ class Particule(pygame.sprite.Sprite):
 	def update(self, screen):
 		self.pos = self.pos + dt*self.speed*(1+EPS)
 		if self.shape == "disk":
-			pygame.draw.circle(screen, self.color, self.pos+self.size/2, self.size/2)
+			pygame.draw.circle(screen, self.color, self.pos, self.size/2)
 		else:
 			screen.blit(self.surf, self.pos.astype(int))
 
@@ -41,9 +41,9 @@ def generate_particules(n, size=5):
 	s = SIZE
 
 	# first create the large central particule.
-	mass = 1
+	mass = 50
 	particule = Particule(index=1, shape="disk", pos=np.array([W/2, H/2]), speed=(0.1,0), 
-							mass=mass, size=50)
+							mass=mass, color=(200,90,120))
 	particules.append(particule)
 	p_map = set_map(p_map, particule)
 
@@ -57,8 +57,8 @@ def generate_particules(n, size=5):
 		y = np.random.randint(s+1, H-2*s-1)
 		while it < max_iter and not found:
 			# loop over the particule (will assume square)
-			for x_ in range(x, x+s):
-				for y_ in range(y, y+s):
+			for x_ in range(x-s//2, x+s//2):
+				for y_ in range(y-s//2, y+s//2):
 					if p_map[x_,y_] == 0:
 						found = False
 			x = np.random.randint(s+1, W-2*s-1)
@@ -70,8 +70,9 @@ def generate_particules(n, size=5):
 			pos = np.array([x, y])
 			speed = MAX_SPEED*np.random.rand(2) + 0.05
 			speed = (-1)**np.random.randint(2)*speed 
-			mass = 0.9*np.random.rand()+ 0.1
-			particule = Particule(index=i, shape="disk", pos=pos, speed=speed, size=s, mass=mass)
+			mass = 10
+			color = np.random.randint(50, 256, 3)
+			particule = Particule(index=i, shape="disk", pos=pos, speed=speed, mass=mass, color=color)
 			particules.append(particule)
 			p_map = set_map(p_map, particule)
 
@@ -80,8 +81,8 @@ def generate_particules(n, size=5):
 def set_map(p_map, part):
 	x, y = part.pos
 	s = part.size
-	for x_ in range(int(x), int(x)+s):
-		for y_ in range(int(y), int(y+s)):
+	for x_ in range(int(x-s/2), int(x+s/2)):
+		for y_ in range(int(y-s/2), int(y+s/2)):
 			if part.shape == "square":
 				p_map[(int(x_), int(y_))] = part.index
 			elif part.shape == "disk":
@@ -127,8 +128,6 @@ def elastic_collision(part1, part2):
 
 	return v1_, v2_
 
-
-
 def check_collisions(part, particules, p_map):
 	''' Applies the collision between particules.
 		The use of hash map makes the check constant.
@@ -139,17 +138,16 @@ def check_collisions(part, particules, p_map):
 
 	stop_loop_x = False
 	# iterate over the particule area.
-	for x_ in range(int(x), int(x+s)):
+	for x_ in range(int(x-s/2), int(x+s/2)):
 
 		if stop_loop_x:
 			stop_loop_x = False
 			break
 
 		# first, find out if we hit a boundary.
-		for y_ in range(int(y), int(y+s)):
+		for y_ in range(int(y-s/2), int(y+s/2)):
 			k_ = p_map[(int(x_),int(y_))]
 			if k_ in [-11,-12,-21,-22]:
-
 				if k_ == -11:
 					norm = np.array([0,1])
 				if k_ == -12:
@@ -180,16 +178,6 @@ def check_collisions(part, particules, p_map):
 			# then check if we collide with another particule.
 			elif k_ != 0 and k_ != k and k != -1:
 				part_ = particules[k_-1]
-
-				# # delta position to change the direction
-				# # in the future, we need to create a reflected direction.
-				# normal = np.array(part.pos) - np.array(part_.pos)
-				# normal = normal / np.linalg.norm(normal)
-
-				# # the speed is updated accordingly.
-				# part.speed = part.speed - 2*part.speed.dot(normal)*normal
-				# part_.speed = part_.speed - 2*part_.speed.dot(normal)*normal
-
 				part.speed, part_.speed = elastic_collision(part, part_)
 
 				# wipe the current index in the map
