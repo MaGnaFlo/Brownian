@@ -4,8 +4,8 @@ BLACK = (0,0,0)
 
 W, H = 700, 700
 dt = 1
-N_PARTICULES = 100
-SIZE = 10
+N_PARTICULES = 10
+SIZE = 30
 MAX_SPEED = 1
 
 EPS = 0.5
