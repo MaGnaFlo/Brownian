@@ -57,8 +57,8 @@ def generate_particules(n, size=5):
 		y = np.random.randint(s+1, H-2*s-1)
 		while it < max_iter and not found:
 			# loop over the particule (will assume square)
-			for x_ in range(int(x-s/2), int(x+s/2)):
-				for y_ in range(int(y-s/2), int(y+s/2)):
+			for x_ in range(int(x-s/2), int(x+s/2)+1):
+				for y_ in range(int(y-s/2), int(y+s/2)+1):
 					if p_map[x_,y_] == 0:
 						found = False
 			x = np.random.randint(s+1, W-2*s-1)
@@ -81,8 +81,8 @@ def generate_particules(n, size=5):
 def set_map(p_map, part):
 	x, y = part.pos
 	s = part.size
-	for x_ in range(int(x-s/2), int(x+s/2)):
-		for y_ in range(int(y-s/2), int(y+s/2)):
+	for x_ in range(int(x-s/2), int(x+s/2)+1):
+		for y_ in range(int(y-s/2), int(y+s/2)+1):
 			if part.shape == "square":
 				p_map[(int(x_), int(y_))] = part.index
 			elif part.shape == "disk":
@@ -138,14 +138,16 @@ def check_collisions(part, particules, p_map):
 
 	stop_loop_x = False
 	# iterate over the particule area.
-	for x_ in range(int(x-s/2), int(x+s/2)):
+	for x_ in range(int(x-s/2), int(x+s/2)+1):
 
 		if stop_loop_x:
 			stop_loop_x = False
 			break
 
 		# first, find out if we hit a boundary.
-		for y_ in range(int(y-s/2), int(y+s/2)):
+		for y_ in range(int(y-s/2), int(y+s/2)+1):
+			
+
 			k_ = p_map[(int(x_),int(y_))]
 			if k_ in [-11,-12,-21,-22]:
 				if k_ == -11:
@@ -164,7 +166,7 @@ def check_collisions(part, particules, p_map):
 				p_map[tuple(part.pos)] = 0
 
 				# update positions
-				part.pos += dt*part.speed*(1+EPS)
+				part.pos += dt*part.speed
 
 				# add indices to map at new position.
 				x, y = part.pos 
@@ -177,6 +179,8 @@ def check_collisions(part, particules, p_map):
 
 			# then check if we collide with another particule.
 			elif k_ != 0 and k_ != k and k != -1:
+				if (x_-x)**2 + (y_-y)**2 > s**2/4 + EPS:
+					continue
 				part_ = particules[k_-1]
 				part.speed, part_.speed = elastic_collision(part, part_)
 
@@ -185,8 +189,8 @@ def check_collisions(part, particules, p_map):
 				p_map[tuple(part_.pos)] = 0
 
 				# update positions
-				part.pos += dt*part.speed*(1+EPS)
-				part_.pos += dt*part_.speed*(1+EPS)
+				part.pos += dt*part.speed
+				part_.pos += dt*part_.speed
 
 				# add indices to map at new position.
 				x, y = part.pos 
