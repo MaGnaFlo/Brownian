@@ -42,8 +42,8 @@ def generate_particules(n, size=5):
 
 	# first create the large central particule.
 	mass = 50
-	particule = Particule(index=1, shape="disk", pos=np.array([W/2, H/2]), speed=(0.1,0), 
-							mass=mass, color=(200,90,120))
+	particule = Particule(index=1, shape="disk", pos=np.array([W/2, H/2]), 
+						  speed=(0,0), mass=mass, color=(40,90,250))
 	particules.append(particule)
 	p_map = set_map(p_map, particule)
 
@@ -57,15 +57,15 @@ def generate_particules(n, size=5):
 		y = np.random.randint(s+1, H-2*s-1)
 		while it < max_iter and not found:
 			# loop over the particule (will assume square)
-			for x_ in range(x-s//2, x+s//2):
-				for y_ in range(y-s//2, y+s//2):
+			for x_ in range(int(x-s/2), int(x+s/2)):
+				for y_ in range(int(y-s/2), int(y+s/2)):
 					if p_map[x_,y_] == 0:
 						found = False
 			x = np.random.randint(s+1, W-2*s-1)
 			y = np.random.randint(s+1, H-2*s-1)
 			it += 1
 
-		# if we found a point, randomize it and add it to the set/map.
+		# if we found a empty spot, randomize it and add it to the set/map.
 		if found:
 			pos = np.array([x, y])
 			speed = MAX_SPEED*np.random.rand(2) + 0.05
