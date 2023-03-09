@@ -2,8 +2,8 @@ import pygame
 from pygame.locals import QUIT
 import time
 from parameters import *
-from particules import *
-
+from particles import Particle_Set
+from interactions import Interactions
 
 
 if __name__ == "__main__":
@@ -12,8 +12,15 @@ if __name__ == "__main__":
 	# initialize
 	pygame.init()
 	screen = pygame.display.set_mode([W, H])
-	particules, p_map = generate_particules(N_PARTICULES, size=SIZE)
-	print("Generated {} particules.".format(len(particules)))
+	
+	particles = Particle_Set(N_PARTICULES, shape="disk")
+	particles.create_central_particle()
+	particles.generate_particles()
+	particles.set_map_all()
+
+	interactions = Interactions(particles)
+
+	print("Generated {} particles.".format(len(particles)))
 	running = True
 
 	while running:
@@ -27,10 +34,10 @@ if __name__ == "__main__":
 				if event.key == pygame.K_q:
 					running = False
 
-		# particules update
-		p_map = set_map_all(p_map, particules)
-		for part in particules:
-			check_collisions(part, particules, p_map)
+		# particles update
+		particles.set_map_all()
+		for part in particles.particles:
+			interactions.check_collisions(part)
 			part.update(screen)
 		
 		# update
