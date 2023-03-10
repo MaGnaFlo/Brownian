@@ -23,8 +23,8 @@ class Particle(pygame.sprite.Sprite):
 		self.size = size
 		
 		self.pos = np.array(pos, dtype=float)
-		if self.shape == "disk":
-			self.pos += self.size/2
+		# if self.shape == "disk":
+			# self.pos += self.size
 		self.speed = np.array(speed, dtype=float)
 		self.index = index
 

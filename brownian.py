@@ -30,7 +30,9 @@ if __name__ == "__main__":
 	os.system("cls" if os.name == "nt" else "clear")
 	pygame.init()
 	if track:
-		screen = pygame.display.set_mode([W*2 + 10, H])
+		pad = 10
+		screen = pygame.display.set_mode([W*2 + pad, H])
+		tracked_pos = [(3*W//2+pad, H//2)]
 	else:
 		screen = pygame.display.set_mode([W, H])
 	
@@ -46,7 +48,7 @@ if __name__ == "__main__":
 	while running:
 		screen.fill(BLACK)
 		if track:
-			pygame.draw.line(screen, WHITE, (W+5,0), (W+5, H-1), 2)
+			pygame.draw.line(screen, WHITE, (W+pad//2,0), (W+pad//2, H-1), 2)
 
 		# events
 		for event in pygame.event.get():
@@ -61,6 +63,13 @@ if __name__ == "__main__":
 		for part in particles:
 			interactions.check_collisions(part)
 			part.update(screen)
+
+		if track:
+			x, y = particles[0].pos
+			tracked_pos.append((x + W + pad, y))
+			pygame.draw.circle(screen, WHITE, tracked_pos[-1], 3)
+			for i in range(len(tracked_pos)-1):
+				pygame.draw.line(screen, WHITE, tracked_pos[i], tracked_pos[i+1])
 		
 		# update
 		pygame.display.flip()
