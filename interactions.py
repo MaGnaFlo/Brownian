@@ -31,6 +31,7 @@ class Interactions:
 		part2.speed = v2 - m_factor2 * scal2 * delta_pos2
 
 	def is_out_of_bounds(self, part):
+		''' Checks if a particle is out of bounds.'''
 		out_of_bounds = False
 		x, y = part.pos
 		s = part.size
@@ -39,7 +40,6 @@ class Interactions:
 			if break_loop:
 				break
 			for y_ in range(int(y-s/2), int(y+s/2)+1):
-				# if (x_-x)**2 + (y_-y)**2 <= s**2/4:
 				if True:
 					out_of_bounds = (self.particles.map[(x_,y_)] < 0)
 					if out_of_bounds:
@@ -60,8 +60,6 @@ class Interactions:
 
 		# the speed is updated accordingly.
 		part.speed = part.speed - 2*part.speed.dot(norm)*norm
-
-		
 
 		# update positions
 		previous_pos = part.pos
@@ -106,19 +104,9 @@ class Interactions:
 					part_ = self.particles[k_-1]
 					self.elastic_collision(part, part_)
 
-					# wipe the current index in the map
-					self.particles.map[tuple(part.pos)] = 0
-					self.particles.map[tuple(part_.pos)] = 0
-
 					# update positions
-					part.pos += dt*part.speed
-					part_.pos += dt*part_.speed
-
-					# add indices to map at new position.
-					x, y = part.pos 
-					x_, y_ = part_.pos
-					self.particles.map[(int(x),int(y))] = part.index
-					self.particles.map[(int(x_),int(y_))] = part_.index
+					part.pos += dt*part.speed + part.speed / np.linalg.norm(part.speed)
+					part_.pos += dt*part_.speed + part_.speed / np.linalg.norm(part_.speed)
 
 					# we found a correct place to set the particle. Stop the loop.
 					stop_loop_x = True

@@ -17,10 +17,12 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-n", "--nparts", type=int, default=N_PARTICULES)
 	parser.add_argument("-c", "--color", type=str, default=None)
+	parser.add_argument("-m", "--mass", type=int, default=MASS_LARGE)
 	args = parser.parse_args()
 
 	n_particles = args.nparts
 	parts_color = np.array(args.color.split(','), dtype=int)
+	mass = args.mass
 
 	# initialize
 	os.system("cls" if os.name == "nt" else "clear")
@@ -28,7 +30,7 @@ if __name__ == "__main__":
 	screen = pygame.display.set_mode([W+100, H+100])
 	
 	particles = Particle_Set(n_particles, shape="disk")
-	particles.create_central_particle(mass=1000, size=SIZE_LARGE)
+	particles.create_central_particle(mass=mass, size=SIZE_LARGE)
 	particles.generate_particles(size=SIZE, color=parts_color)
 	particles.set_map_all()
 	particles.set_boundaries_map(pad=100)
