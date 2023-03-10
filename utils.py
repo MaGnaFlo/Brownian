@@ -9,7 +9,7 @@ class ProgressBar:
 		self.width = width
 		self.n_iter = n_iter
 		self.text = text
-		print(text+'[' + width*' ' + ']', end="\r")
+		print(text+ '[' + width*' ' + ']', end="\r")
 
 	def update(self, i):
 		''' Called at each iteration.

@@ -24,7 +24,7 @@ class Interactions:
 			scal1 = 10*scal1/np.abs(scal1)
 			scal2 = 10*scal2/np.abs(scal2)
 
-		delta_pos1 = (pos1 - pos2) / (1+np.linalg.norm(pos2-pos1))**2
+		delta_pos1 = (pos1 - pos2) / np.linalg.norm(pos2-pos1)**2
 		delta_pos2 = -delta_pos1
 
 		part1.speed = v1 - m_factor1 * scal1 * delta_pos1
@@ -86,7 +86,7 @@ class Interactions:
 					if (x_-x)**2 + (y_-y)**2 > s**2/4 + EPS:
 						continue
 
-					part_ = self.particles.particles[k_-1]
+					part_ = self.particles[k_-1]
 					self.elastic_collision(part, part_)
 
 					# wipe the current index in the map

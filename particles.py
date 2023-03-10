@@ -45,15 +45,41 @@ class Particle(pygame.sprite.Sprite):
 			screen.blit(self.surf, self.pos.astype(int))
 
 
+class Particle_Set_Iter:
+	def __init__(self, particle_set):
+		self.particles = particle_set.particles
+		self.current_index = 0 
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		if self.current_index < len(self.particles):
+			part = self.particles[self.current_index]
+			self.current_index += 1 
+			return part
+		raise StopIteration
+
+
 class Particle_Set:
 	''' Container of particles. Additionally deals with the collision map. '''
 	def __init__(self, n_part=100, shape="disk"):
 		self.n_particles = n_part
 		self.map = defaultdict(int)
 		self.particles = []
+		self.iter_index = 0
 
 	def __len__(self):
 		return len(self.particles)
+
+	def __iter__(self):
+		return Particle_Set_Iter(self)
+
+	def __getitem__(self, index):
+		return self.particles[index]
+
+	def __setitem__(self, index, val):
+		self.particles[index] = val
 
 	def set_map(self, part):
 		''' Sets the particle map at the area of the particle to its index. '''
