@@ -20,14 +20,15 @@ class Interactions:
 
 		scal1 = (v1-v2).dot(pos1-pos2)
 		scal2 = (v2-v1).dot(pos2-pos1)
+		if np.abs(scal1) < 0.1: # slight condition to prevent tangential behavior error.
+			scal1 = 10*scal1/np.abs(scal1)
+			scal2 = 10*scal2/np.abs(scal2)
 
-		delta_pos1 = (pos1 - pos2) / np.linalg.norm(pos2-pos1)**2
+		delta_pos1 = (pos1 - pos2) / (1+np.linalg.norm(pos2-pos1))**2
 		delta_pos2 = -delta_pos1
 
-		v1_ = v1 - m_factor1 * scal1 * delta_pos1
-		v2_ = v2 - m_factor2 * scal2 * delta_pos2
-
-		return v1_, v2_
+		part1.speed = v1 - m_factor1 * scal1 * delta_pos1
+		part2.speed = v2 - m_factor2 * scal2 * delta_pos2
 
 	def boundaries_collision(self, part, index):
 		''' Update particle when it hits a boundary '''
@@ -53,7 +54,6 @@ class Interactions:
 		x, y = part.pos 
 
 		self.particles.map[(int(x),int(y))] = part.index
-
 
 	def check_collisions(self, part):
 		''' Applies the collision between particles.
@@ -87,7 +87,7 @@ class Interactions:
 						continue
 
 					part_ = self.particles.particles[k_-1]
-					part.speed, part_.speed = self.elastic_collision(part, part_)
+					self.elastic_collision(part, part_)
 
 					# wipe the current index in the map
 					self.particles.map[tuple(part.pos)] = 0

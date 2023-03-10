@@ -2,6 +2,7 @@ import numpy as np
 from collections import defaultdict
 import pygame
 from parameters import *
+from utils import ProgressBar
 
 
 class Particle(pygame.sprite.Sprite):
@@ -96,20 +97,28 @@ class Particle_Set:
 		s = size
 
 		# loop over the number of desired additional particles
-		for i in range(2, self.n_particles+1):
+		i = 2
+		pbar = ProgressBar(self.n_particles+1, text="Generating particles")
+		while i < self.n_particles+1:
 			it = 0
 			found = True
 
-			x = np.random.randint(s+1, W-2*s-1)
-			y = np.random.randint(s+1, H-2*s-1)
-			while it < MAX_ITER_GENERATION and not found:
-				# loop over the particle (will assume square)
-				for x_ in range(int(x-s/2), int(x+s/2)+1):
-					for y_ in range(int(y-s/2), int(y+s/2)+1):
-						if self.map[x_,y_] == 0:
-							found = False
+			while it < MAX_FIND_GENERATION and found:
 				x = np.random.randint(s+1, W-2*s-1)
 				y = np.random.randint(s+1, H-2*s-1)
+
+				# loop over the particle area (will assume square)
+				stop_loop = False
+				for x_ in range(int(x-s/2), int(x+s/2)+1):
+					if stop_loop:
+						break
+					for y_ in range(int(y-s/2), int(y+s/2)+1):
+						if (x_-x)**2 + (y_-y)**2 <= s**2/4-EPS:
+							if self.map[x_,y_] != 0:
+								found = False
+								stop_loop = True
+								break
+				
 				it += 1
 
 			# if we found a empty spot, randomize it and add it to the set/map.
@@ -122,4 +131,7 @@ class Particle_Set:
 				particle = Particle(index=i, shape=shape, pos=pos, size=size, speed=speed, mass=mass, color=color_)
 				self.particles.append(particle)
 				self.set_map(particle)
-	
+				i+=1
+			pbar.update(i)
+
+		pbar.end("Generated {} particles.".format(i-1))

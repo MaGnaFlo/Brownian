@@ -19,8 +19,6 @@ if __name__ == "__main__":
 	particles.set_map_all()
 
 	interactions = Interactions(particles)
-
-	print("Generated {} particles.".format(len(particles)))
 	running = True
 
 	while running:
