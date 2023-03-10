@@ -96,20 +96,32 @@ class Particle_Set:
 					print("Unknown shape argument.")
 					raise TypeError
 
+	def set_boundaries_map(self, pad=100):
+		# create boundaries
+		for x in range(-1, W):
+			for y in range(-pad, 1):
+				self.map[(x,y)] = -11
+			for y in range(H-1, H+pad):
+				self.map[(x,y)] = -12
+			
+		for y in range(-1, H):
+			for x in range(-pad, 1):
+				self.map[(x,y)] = -21
+			for x in range(W-1, W+pad):
+				self.map[(x,y)] = -22
+
 	def set_map_all(self):
 		''' Sets the particle map for all particles and for the boudaries. '''
-		self.map = defaultdict(int)
+		self.reset_map()
 		for part in self.particles:
 			self.set_map(part)
 
-		# create boundaries
-		for x in range(-1, W):
-			self.map[(x,0)] = -11
-			self.map[(x,H-1)] = -12
+	def reset_map(self):
+		''' Reset the map to 0 except for boundaries.'''
+		for pos, index in self.map.items():
+			if index > 0:
+				self.map[pos] = 0
 
-		for y in range(-1, H):
-			self.map[(0,y)] = -21
-			self.map[(W-1,y)] = -22
 
 	def create_central_particle(self, size=50, mass=50, color=(40,90,250)):
 		''' Creates the large particle at the center of the frame. '''

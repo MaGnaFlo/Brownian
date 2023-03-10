@@ -7,7 +7,7 @@ dt = 1
 N_PARTICULES = 100
 SIZE = 7
 SIZE_LARGE = 50
-MAX_SPEED = 5
+MAX_SPEED = 10
 
 EPS = 2 # for collisions (enhance disk area check)
 

@@ -30,6 +30,23 @@ class Interactions:
 		part1.speed = v1 - m_factor1 * scal1 * delta_pos1
 		part2.speed = v2 - m_factor2 * scal2 * delta_pos2
 
+	def is_out_of_bounds(self, part):
+		out_of_bounds = False
+		x, y = part.pos
+		s = part.size
+		break_loop = False
+		for x_ in range(int(x-s/2), int(x+s/2)+1):
+			if break_loop:
+				break
+			for y_ in range(int(y-s/2), int(y+s/2)+1):
+				# if (x_-x)**2 + (y_-y)**2 <= s**2/4:
+				if True:
+					out_of_bounds = (self.particles.map[(x_,y_)] < 0)
+					if out_of_bounds:
+						break_loop = True
+						break
+		return out_of_bounds
+
 	def boundaries_collision(self, part, index):
 		''' Update particle when it hits a boundary '''
 		if index == -11:
@@ -44,16 +61,16 @@ class Interactions:
 		# the speed is updated accordingly.
 		part.speed = part.speed - 2*part.speed.dot(norm)*norm
 
-		# wipe the current index in the map.
-		self.particles.map[tuple(part.pos)] = 0
+		
 
 		# update positions
-		part.pos += dt*part.speed
+		previous_pos = part.pos
+		while self.is_out_of_bounds(part):
+			part.pos += norm
 
-		# add indices to map at new position.
-		x, y = part.pos 
-
-		self.particles.map[(int(x),int(y))] = part.index
+		# wipe the current index in the map.
+		self.particles.map[tuple(previous_pos)] = 0
+		self.particles.map[tuple(part.pos)] = part.index
 
 	def check_collisions(self, part):
 		''' Applies the collision between particles.
